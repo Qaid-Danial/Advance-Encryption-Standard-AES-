@@ -1,6 +1,7 @@
 package main
 
 import (
+	subbytes "AES/SubBytes"
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
@@ -49,12 +50,17 @@ func createWindow() *tview.Application {
 
 			password := input.GetText()
 			key := generateKey(password)
+
+			subkey := subbytes.Substitude(key)
+
 			keySize := unsafe.Sizeof(key) * 8
+			subkeySize := unsafe.Sizeof(subkey) * 8
 
 			fmt.Fprintln(textPanel, password)
 			fmt.Fprintln(textPanel, key)
-
 			fmt.Fprintln(textPanel, keySize)
+			fmt.Fprintln(textPanel, subkey)
+			fmt.Fprintln(textPanel, subkeySize)
 
 			input.SetText("")
 		}
