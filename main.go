@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
-	"unsafe"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -51,16 +50,13 @@ func createWindow() *tview.Application {
 			password := input.GetText()
 			key := generateKey(password)
 
-			subkey := subbytes.Substitude(key)
-
-			keySize := unsafe.Sizeof(key) * 8
-			subkeySize := unsafe.Sizeof(subkey) * 8
+			subkey := subbytes.Substitude(key, false)
+			orikey := subbytes.Substitude(subkey, true)
 
 			fmt.Fprintln(textPanel, password)
 			fmt.Fprintln(textPanel, key)
-			fmt.Fprintln(textPanel, keySize)
 			fmt.Fprintln(textPanel, subkey)
-			fmt.Fprintln(textPanel, subkeySize)
+			fmt.Fprintln(textPanel, orikey)
 
 			input.SetText("")
 		}
