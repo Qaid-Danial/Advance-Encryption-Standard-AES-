@@ -1,11 +1,9 @@
 package main
 
 import (
-	subbytes "AES/SubBytes"
-	"crypto/md5"
-	"encoding/hex"
+	keygen "AES/KeyGen"
+
 	"fmt"
-	"io"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -20,17 +18,6 @@ func main() {
 	if err := app.Run(); err != nil {
 		panic(err)
 	}
-}
-
-func generateKey(plaintext string) string {
-
-	hasher := md5.New()
-	io.WriteString(hasher, plaintext)
-
-	hashBytes := hasher.Sum(nil)
-	hashString := hex.EncodeToString(hashBytes)
-
-	return hashString
 }
 
 func createWindow() *tview.Application {
@@ -48,15 +35,13 @@ func createWindow() *tview.Application {
 		if key == tcell.KeyEnter {
 
 			password := input.GetText()
-			key := generateKey(password)
+			key := keygen.GenerateKey(password)
 
-			subkey := subbytes.Substitude(key, false)
-			orikey := subbytes.Substitude(subkey, true)
+			firstFourByte := keygen.RotWord(key)
 
 			fmt.Fprintln(textPanel, password)
 			fmt.Fprintln(textPanel, key)
-			fmt.Fprintln(textPanel, subkey)
-			fmt.Fprintln(textPanel, orikey)
+			fmt.Fprintln(textPanel, firstFourByte)
 
 			input.SetText("")
 		}

@@ -1,4 +1,4 @@
-package subbytes
+package operation
 
 import (
 	"strconv"
