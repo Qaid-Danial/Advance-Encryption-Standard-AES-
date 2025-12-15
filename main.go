@@ -37,11 +37,11 @@ func createWindow() *tview.Application {
 			password := input.GetText()
 			key := keygen.GenerateKey(password)
 
-			firstFourByte := keygen.RotWord(key)
+			rcon := keygen.RCon(10)
 
 			fmt.Fprintln(textPanel, password)
 			fmt.Fprintln(textPanel, key)
-			fmt.Fprintln(textPanel, firstFourByte)
+			fmt.Fprintf(textPanel, "%x\n", rcon)
 
 			input.SetText("")
 		}
