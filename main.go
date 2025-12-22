@@ -1,10 +1,6 @@
 package main
 
 import (
-	keygen "AES/KeyGen"
-
-	"fmt"
-
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
@@ -34,14 +30,22 @@ func createWindow() *tview.Application {
 	input.SetDoneFunc(func(key tcell.Key) {
 		if key == tcell.KeyEnter {
 
-			password := input.GetText()
-			key := keygen.GenerateKey(password)
+			// password := input.GetText()
+			// key := keygen.GenerateKey(password)
+			// // hello := keygen.GenerateRoundKey()
 
-			rcon := keygen.RCon(10)
+			// rcon := keygen.RCon(10)
 
-			fmt.Fprintln(textPanel, password)
-			fmt.Fprintln(textPanel, key)
-			fmt.Fprintf(textPanel, "%x\n", rcon)
+			// fmt.Fprintln(textPanel, password)
+			// fmt.Fprintln(textPanel, key)
+			// fmt.Fprintln(textPanel, hello)
+			// fmt.Fprintf(textPanel, "%x\n", rcon)
+
+			// cypherKey, rotBytes, subBytes := keygen.GenerateRoundKey(password, 10)
+			// fmt.Fprintln(textPanel, password)
+			// fmt.Fprintln(textPanel, cypherKey)
+			// fmt.Fprintln(textPanel, rotBytes)
+			// fmt.Fprintln(textPanel, subBytes)
 
 			input.SetText("")
 		}

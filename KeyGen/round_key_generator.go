@@ -1,6 +1,9 @@
 package keygen
 
-import "strings"
+import (
+	operation "AES/Operations"
+	"strings"
+)
 
 func rotWord(a string) string {
 
@@ -41,6 +44,16 @@ func rCon(numberOfRountConstant int) []int {
 	return roundConstantArray
 }
 
-func GenerateRoundKey() {
+func GenerateRoundKey(password string, numberOfKeys int) (string, string, string) {
 
+	// var resultMatrix []int
+	// roundConstant := rCon(numberOfKeys)
+
+	
+
+	cypherKey := GenerateKey(password)
+	rotBytes := rotWord(cypherKey)
+	subBytes := operation.Substitude(rotBytes, false)
+
+	return cypherKey, rotBytes, subBytes
 }
