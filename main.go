@@ -1,6 +1,9 @@
 package main
 
 import (
+	keygen "AES/KeyGen"
+	"fmt"
+
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
@@ -30,7 +33,13 @@ func createWindow() *tview.Application {
 	input.SetDoneFunc(func(key tcell.Key) {
 		if key == tcell.KeyEnter {
 
-			// password := input.GetText()
+			password := input.GetText()
+			roundKeys := keygen.GenerateRoundKey(password)
+
+			for _, element := range roundKeys {
+				fmt.Fprintln(textPanel, element)
+			}
+
 			// key := keygen.GenerateKey(password)
 			// // hello := keygen.GenerateRoundKey()
 
