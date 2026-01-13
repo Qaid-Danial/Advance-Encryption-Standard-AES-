@@ -2,153 +2,108 @@ package keygen
 
 import (
 	operation "AES/Operations"
+	"encoding/hex"
+	"fmt"
 	"strconv"
 	"strings"
 )
 
-// func rotWord(a string) string {
-
-// 	var firstFourBytes []string
-
-// 	for i := 0; i < 8; i += 2 {
-// 		oneByte := string(a[i]) + string(a[i+1])
-// 		firstFourBytes = append(firstFourBytes, oneByte)
-// 	}
-
-// 	firstByte := firstFourBytes[0]
-// 	firstFourBytes = firstFourBytes[1:]
-
-// 	firstFourBytes = append(firstFourBytes, firstByte)
-
-// 	fourByteString := strings.Join(firstFourBytes, "")
-
-// 	return fourByteString
-// }
-
 func rotWord(a string) string {
-	var lastWord []string
-
-	for i := 24; i < 32; i += 2 {
-		oneByte := string(a[i]) + string(a[i+1])
-		lastWord = append(lastWord, oneByte)
+	// Takes a 4-byte hex string (word) and performs a cyclic permutation.
+	var bytes []string
+	for i := 0; i < len(a); i += 2 {
+		bytes = append(bytes, a[i:i+2])
 	}
 
-	byteToRotate := lastWord[0]
-	lastWord = lastWord[1:]
+	firstByte := bytes[0]
+	bytes = bytes[1:]
+	bytes = append(bytes, firstByte)
 
-	lastWord = append(lastWord, byteToRotate)
-
-	wordString := strings.Join(lastWord, "")
-
-	//return only the last word thats already been rotated
-	return wordString
+	return strings.Join(bytes, "")
 }
 
-func rCon(numberOfRountConstant int) []int {
+func rCon(num int) []int {
+	// Generates the round constants (Rcon) for the key schedule.
+	if num <= 0 {
+		return []int{}
+	}
+	roundConstantArray := make([]int, num)
+	roundConstantArray[0] = 0x01
 
-	numberOfRountConstant -= 1
-	var roundConstantArray = []int{0x01}
-
-	for i := range numberOfRountConstant {
-
-		nextRountConstant := roundConstantArray[i] * 0x2
-
-		if roundConstantArray[i] >= 0x80 {
+	for i := 1; i < num; i++ {
+		nextRountConstant := roundConstantArray[i-1] * 2
+		if roundConstantArray[i-1] >= 0x80 {
 			nextRountConstant ^= 0x11B
 		}
-
-		roundConstantArray = append(roundConstantArray, nextRountConstant)
+		roundConstantArray[i] = nextRountConstant
 	}
 
 	return roundConstantArray
 }
 
 func convToHex(a string) []int {
-
 	var hexArray []int
-
-	// for _, element := range a {
 	for i := 0; i < len(a); i += 2 {
-
-		stringVal := string(a[i]) + string(a[i+1])
-
+		stringVal := a[i : i+2]
 		hexVal, err := strconv.ParseInt(stringVal, 16, 64)
-		// hexVal2, err := strconv.ParseInt(string(a[i+1]), 16, 64)
-
 		if err != nil {
 			panic(err)
 		}
 		hexArray = append(hexArray, int(hexVal))
-
 	}
-
 	return hexArray
 }
 
-func GenerateRoundKey(password string) [11]string {
+func intToHexStr(n int) string {
+	return fmt.Sprintf("%02x", n)
+}
 
-	//hard set the amount of keys
-	var resultMatrix [11]string
+func xorWords(word1, word2 string) string {
+	// XORs two 4-byte hex strings (words) and returns the resulting hex string.
+	b1 := convToHex(word1)
+	b2 := convToHex(word2)
+	result := ""
+	for i := 0; i < 4; i++ {
+		result += intToHexStr(b1[i] ^ b2[i])
+	}
+	return result
+}
 
-	//128-bit aes encryption needs 10 round keys
-	roundConstant := rCon(10)
+func GenerateRoundKey(password string) ([11]string, [][]byte) {
+	var strRoundKeys [11]string
+	var intRoundKeys [][]byte
 
-	cypherKey := GenerateKey(password)
-	resultMatrix[0] = cypherKey
+	constants := rCon(10)
 
-	for i, element := range resultMatrix {
+	// The first round key is the original cipher key.
+	strRoundKeys[0] = GenerateKey(password)
 
-		// predefine a variable for the xor multipliyer & temp result matrix house
-		var xorMultiplyer []int
-		var resultMatrixHouse []string
-
-		rotWord := rotWord(element)
-		subWord := operation.Substitude(rotWord, false)
-
-		//converting the subword to int and inserting into xorMultipliyer
-		xorMultiplyer = convToHex(subWord)
-
-		//getting the rCon values
-		rCon := roundConstant[i]
-
-		//round constant operation
-		xorMultiplyer[0] = rCon ^ xorMultiplyer[0]
-
-		//converting element into int
-		hexElement := convToHex(element)
-
-		for j := 0; j < len(hexElement); j++ {
-			for z := 0; z < 4; z++ {
-				xorMultiplyer[z] = xorMultiplyer[z] ^ hexElement[j+z]
-				resultMatrixHouse = append(resultMatrixHouse, string(xorMultiplyer[z]))
-			}
-
+	for i := 1; i <= 10; i++ {
+		prevKey := strRoundKeys[i-1]
+		prevWords := make([]string, 4)
+		for j := 0; j < 4; j++ {
+			prevWords[j] = prevKey[j*8 : (j+1)*8]
 		}
 
-		fullResultString := strings.Join(resultMatrixHouse, "")
-		resultMatrix[i+1] = fullResultString
-	}
+		// g(w) = SubWord(RotWord(w)) ^ Rcon
+		g_w3 := rotWord(prevWords[3])
+		g_w3, _ = operation.Substitude(g_w3, false)
+		g_w3_bytes := convToHex(g_w3)
+		g_w3_bytes[0] ^= constants[i-1] // XOR with round constant
+		g_w3 = intToHexStr(g_w3_bytes[0]) + intToHexStr(g_w3_bytes[1]) + intToHexStr(g_w3_bytes[2]) + intToHexStr(g_w3_bytes[3])
 
-	return resultMatrix
+		// Generate the new words for the new round key.
+		newW0 := xorWords(prevWords[0], g_w3)
+		newW1 := xorWords(prevWords[1], newW0)
+		newW2 := xorWords(prevWords[2], newW1)
+		newW3 := xorWords(prevWords[3], newW2)
 
-	// for i, element := range resultMatrix {
+		currentRoundKey := newW0 + newW1 + newW2 + newW3
+		byteForm, _ := hex.DecodeString(currentRoundKey)
 
-	// 	var hexWordMultipliyer []int
+		strRoundKeys[i] = currentRoundKey
+		intRoundKeys = append(intRoundKeys, byteForm)
+	}	
 
-	// 	rotBytes := rotWord(element)
-	// 	subBytes := operation.Substitude(rotBytes, false)
-
-	// 	hexWordMultipliyer = convToHex(subBytes)
-
-	// 	rConstant := roundConstant[i]
-	// 	hexWordMultipliyer[0] = hexWordMultipliyer[0] ^ rConstant
-
-	// 	var tempArray []int
-
-	// 	hexElement := convToHex(element)
-	// 	for j := 0; j < 32; j += 4 {
-
-	// 	}
-	// }
-
+	return strRoundKeys, intRoundKeys
 }

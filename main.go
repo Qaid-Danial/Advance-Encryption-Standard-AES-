@@ -2,6 +2,7 @@ package main
 
 import (
 	keygen "AES/KeyGen"
+	operation "AES/Operations"
 	"fmt"
 
 	"github.com/gdamore/tcell/v2"
@@ -34,11 +35,19 @@ func createWindow() *tview.Application {
 		if key == tcell.KeyEnter {
 
 			password := input.GetText()
-			roundKeys := keygen.GenerateRoundKey(password)
+			cypherKey := keygen.GenerateKey(password)
 
-			for _, element := range roundKeys {
-				fmt.Fprintln(textPanel, element)
-			}
+			stringKey, intKey := operation.Substitude(cypherKey, false)
+
+			fmt.Fprintln(textPanel, stringKey)
+			fmt.Fprintf(textPanel, "%x\n", intKey)
+
+			// password := input.GetText()
+			// roundKeys := keygen.GenerateRoundKey(password)
+
+			// for _, element := range roundKeys {
+			// 	fmt.Fprintln(textPanel, element)
+			// }
 
 			// key := keygen.GenerateKey(password)
 			// // hello := keygen.GenerateRoundKey()
@@ -49,12 +58,6 @@ func createWindow() *tview.Application {
 			// fmt.Fprintln(textPanel, key)
 			// fmt.Fprintln(textPanel, hello)
 			// fmt.Fprintf(textPanel, "%x\n", rcon)
-
-			// cypherKey, rotBytes, subBytes := keygen.GenerateRoundKey(password, 10)
-			// fmt.Fprintln(textPanel, password)
-			// fmt.Fprintln(textPanel, cypherKey)
-			// fmt.Fprintln(textPanel, rotBytes)
-			// fmt.Fprintln(textPanel, subBytes)
 
 			input.SetText("")
 		}

@@ -1,6 +1,7 @@
 package operation
 
 import (
+	"encoding/hex"
 	"strconv"
 	"strings"
 )
@@ -72,19 +73,47 @@ func hexToDecimal(a string) []int {
 	return decimalArray
 }
 
-func Substitude(a string, inverse bool) string {
+// func Substitude(a string, inverse bool) (string, int) {
 
-	// first value is the Y coords and the second value is the X coords
-	// so essentially rows before columns
-	// [y-val][x-val]
+// 	// first value is the Y coords and the second value is the X coords
+// 	// so essentially rows before columns
+// 	// [y-val][x-val]
 
-	var subbedKeyArray []string
+// 	var subbedKeyArray []string
+// 	var subbed string
+// 	decimalArray := hexToDecimal(a)
+
+// 	for i := 0; i < len(a); i += 2 {
+// 		indexX := decimalArray[i+1]
+// 		indexY := decimalArray[i]
+
+// 		switch {
+// 		case inverse:
+// 			subbed = invesersBox[indexY][indexX]
+// 		case !inverse:
+// 			subbed = sBox[indexY][indexX]
+// 		}
+
+// 		subbedKeyArray = append(subbedKeyArray, subbed)
+// 	}
+
+// 	subbedKeyString := strings.Join(subbedKeyArray, "")
+// 	subbedKey := strings.ToLower(subbedKeyString)
+
+// 	return subbedKey
+// }
+
+func Substitude(a string, inverse bool) (string, []byte) {
+
+	decimalArr := hexToDecimal(a)
+
 	var subbed string
-	decimalArray := hexToDecimal(a)
+	var subbedKey []string
+	var keyString string
 
 	for i := 0; i < len(a); i += 2 {
-		indexX := decimalArray[i+1]
-		indexY := decimalArray[i]
+		indexX := decimalArr[i+1]
+		indexY := decimalArr[i]
 
 		switch {
 		case inverse:
@@ -93,11 +122,14 @@ func Substitude(a string, inverse bool) string {
 			subbed = sBox[indexY][indexX]
 		}
 
-		subbedKeyArray = append(subbedKeyArray, subbed)
+		subbedKey = append(subbedKey, subbed)
+
 	}
 
-	subbedKeyString := strings.Join(subbedKeyArray, "")
-	subbedKey := strings.ToLower(subbedKeyString)
+	keyString = strings.Join(subbedKey, "")
+	keyString = strings.ToLower(keyString)
 
-	return subbedKey
+	keyInt, _ := hex.DecodeString(keyString)
+
+	return keyString, keyInt
 }
