@@ -2,14 +2,16 @@ package main
 
 import (
 	keygen "AES/KeyGen"
-	operation "AES/Operations"
 	"fmt"
+	"os"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
-var ()
+var (
+	filePath string = "RoundKeys.txt"
+)
 
 func main() {
 
@@ -34,32 +36,25 @@ func createWindow() *tview.Application {
 	input.SetDoneFunc(func(key tcell.Key) {
 		if key == tcell.KeyEnter {
 
+			textPanel.Clear()
+
+			file, err := os.OpenFile(filePath, os.O_CREATE|os.O_TRUNC, 0644)
+			if err != nil {
+				file.Close()
+				panic(err)
+			}
+
 			password := input.GetText()
-			cypherKey := keygen.GenerateKey(password)
+			roundKeysString, roundKeysByte := keygen.GenerateRoundKey(password)
 
-			stringKey, intKey := operation.Substitude(cypherKey, false)
-
-			fmt.Fprintln(textPanel, stringKey)
-			fmt.Fprintf(textPanel, "%x\n", intKey)
-
-			// password := input.GetText()
-			// roundKeys := keygen.GenerateRoundKey(password)
-
-			// for _, element := range roundKeys {
-			// 	fmt.Fprintln(textPanel, element)
-			// }
-
-			// key := keygen.GenerateKey(password)
-			// // hello := keygen.GenerateRoundKey()
-
-			// rcon := keygen.RCon(10)
-
-			// fmt.Fprintln(textPanel, password)
-			// fmt.Fprintln(textPanel, key)
-			// fmt.Fprintln(textPanel, hello)
-			// fmt.Fprintf(textPanel, "%x\n", rcon)
+			for i, element := range roundKeysString {
+				fmt.Fprintf(textPanel, "Key %d: %s\n", i+1, element)
+				fmt.Fprintf(file, "%x02\n", roundKeysByte[i])
+			}
 
 			input.SetText("")
+			file.Close()
+
 		}
 	})
 

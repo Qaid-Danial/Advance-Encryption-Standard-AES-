@@ -69,14 +69,17 @@ func xorWords(word1, word2 string) string {
 	return result
 }
 
-func GenerateRoundKey(password string) ([11]string, [][]byte) {
+func GenerateRoundKey(password string) ([11]string, [11][]byte) {
 	var strRoundKeys [11]string
-	var intRoundKeys [][]byte
+	var intRoundKeys [11][]byte
 
 	constants := rCon(10)
 
+	cypherKey := GenerateKey(password)
+
 	// The first round key is the original cipher key.
-	strRoundKeys[0] = GenerateKey(password)
+	strRoundKeys[0] = cypherKey
+	intRoundKeys[0], _ = hex.DecodeString(cypherKey)
 
 	for i := 1; i <= 10; i++ {
 		prevKey := strRoundKeys[i-1]
@@ -102,8 +105,9 @@ func GenerateRoundKey(password string) ([11]string, [][]byte) {
 		byteForm, _ := hex.DecodeString(currentRoundKey)
 
 		strRoundKeys[i] = currentRoundKey
-		intRoundKeys = append(intRoundKeys, byteForm)
-	}	
+		intRoundKeys[i] = []byte(byteForm)
+
+	}
 
 	return strRoundKeys, intRoundKeys
 }
